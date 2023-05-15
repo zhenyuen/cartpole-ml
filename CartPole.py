@@ -2,7 +2,7 @@
 fork from python-rl and pybrain for visualization
 """
 #import numpy as np
-import jax.numpy as np
+import numpy as np
 from matplotlib.pyplot import ion, draw, Rectangle, Line2D
 import matplotlib.pyplot as plt
 
