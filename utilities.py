@@ -25,7 +25,7 @@ UNSTABLE_ANG = 0
 UNSTABLE_ANG_VEL = 0
 
 DELTA = r"$\Delta$ "
-LEVELS = 5
+LEVELS = 20
 STEPS = 5 # In multiples of 50
 
 def simulate(state, steps=50, visual=False, remap_angle=False):
@@ -52,11 +52,11 @@ def get_subplot(title):
 
 
 
-def plot_states(x, y, fig, axs, color=None, label="", xlabel="", ylabel=""):
-    axs[0,0].plot(x, y[:, 0], color=color, label=label)
-    axs[0,1].plot(x, y[:, 1], color=color)
-    axs[1,0].plot(x, y[:, 2], color=color)
-    axs[1,1].plot(x, y[:, 3], color=color)
+def plot_states(x, y, fig, axs, color=None, label="", xlabel="", ylabel="", linestyle=None):
+    axs[0,0].plot(x, y[:, 0], color=color, label=label, linestyle=linestyle)
+    axs[0,1].plot(x, y[:, 1], color=color, linestyle=linestyle)
+    axs[1,0].plot(x, y[:, 2], color=color, linestyle=linestyle)
+    axs[1,1].plot(x, y[:, 3], color=color, linestyle=linestyle)
 
     #Set titles
     ylabels = [ylabel] * 4 if ylabel else [STATE0, STATE1, STATE2, STATE3]
@@ -94,10 +94,7 @@ def plot_all_states_in_a_subplot(x, y, fig, ax, color=None, labels="", xlabel=""
     ax.grid()
     
 
-  
-
-
-def plot_states_contour(x, y, z, fig, axs, colors=None, xlabel="", ylabel="", xlim=(-10, 10), ylim=(-15, 15)):
+def plot_states_contour(x, y, z, fig, axs, colors=None, xlabel="", ylabel="", xlim=(-10, 10), ylim=(-15, 15), levels=LEVELS):
     def format(i, z):
         n = x.shape[0]
         z = z[1:, i]
@@ -108,15 +105,15 @@ def plot_states_contour(x, y, z, fig, axs, colors=None, xlabel="", ylabel="", xl
     z2 = format(2, z)
     z3 = format(3, z)
 
-    c1 = axs[0,0].contour(x, y, z0, colors=colors, levels=LEVELS)
-    c2 = axs[0,1].contour(x, y, z1, colors=colors, levels=LEVELS)
-    c3 = axs[1,0].contour(x, y, z2, colors=colors, levels=LEVELS)
-    c4 = axs[1,1].contour(x, y, z3, colors=colors, levels=LEVELS)
+    c1 = axs[0,0].contour(x, y, z0, colors=colors, levels=5)
+    c2 = axs[0,1].contour(x, y, z1, colors=colors, levels=5)
+    c3 = axs[1,0].contour(x, y, z2, colors=colors, levels=5)
+    c4 = axs[1,1].contour(x, y, z3, colors=colors, levels=5)
 
-    cntr1 = axs[0, 0].contourf(x, y, z0, linestyles='solid', negative_linestyles='dashed', levels=LEVELS)
-    cntr2 = axs[0, 1].contourf(x, y, z1, linestyles='solid', negative_linestyles='dashed', levels=LEVELS)
-    cntr3 = axs[1, 0].contourf(x, y, z2, linestyles='solid', negative_linestyles='dashed', levels=LEVELS)
-    cntr4 = axs[1, 1].contourf(x, y, z3, linestyles='solid', negative_linestyles='dashed', levels=LEVELS)
+    cntr1 = axs[0, 0].contourf(x, y, z0, linestyles='solid', negative_linestyles='dashed', levels=levels)
+    cntr2 = axs[0, 1].contourf(x, y, z1, linestyles='solid', negative_linestyles='dashed', levels=levels)
+    cntr3 = axs[1, 0].contourf(x, y, z2, linestyles='solid', negative_linestyles='dashed', levels=levels)
+    cntr4 = axs[1, 1].contourf(x, y, z3, linestyles='solid', negative_linestyles='dashed', levels=levels)
 
     if colors != 'white':
         fig.colorbar(cntr1, ax=axs[0, 0])
@@ -148,10 +145,10 @@ def plot_states_contour(x, y, z, fig, axs, colors=None, xlabel="", ylabel="", xl
     axs[1, 1].set(xlabel=xlabel)
     axs[1, 1].set(ylabel=ylabel)
 
-    axs[0,0].clabel(c1, c1.levels[::2], inline=True, colors=colors)
-    axs[0,1].clabel(c2, c2.levels[::2], inline=True, colors=colors)
-    axs[1,0].clabel(c3, c3.levels[::4], inline=True, colors=colors)
-    axs[1,1].clabel(c4, c4.levels[::2], inline=True, colors=colors)
+    axs[0,0].clabel(c1, c1.levels, inline=True, colors=colors)
+    axs[0,1].clabel(c2, c2.levels, inline=True, colors=colors)
+    axs[1,0].clabel(c3, c3.levels, inline=True, colors=colors)
+    axs[1,1].clabel(c4, c4.levels, inline=True, colors=colors)
 
 
 
@@ -196,16 +193,16 @@ def plot_all_states_in_a_subplot_1_3(x, y, fig, ax, colors=None, labels="", xlab
     ax.set(xlabel=xlabel)
     ax.set(ylabel=ylabel)
 
-    ax.grid()
 
-
-def run_simulation(X, steps):
+def run_simulation(X, steps, remap=True):
     cp = CartPole(False)
     state = X.copy()
     cp.setState(state)
     for _ in steps:
         cp.performAction()
-        state = np.vstack([state, cp.getState()])
+        t = cp.getState()
+        t[2] = remap_angle(t[2])
+        state = np.vstack([state, t])
     return state
 
 def run_linear_model(X, W, steps, remap=True):
