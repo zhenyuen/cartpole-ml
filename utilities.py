@@ -1,4 +1,9 @@
-from CartPole import *
+from CartPole_ import *
+
+import os
+import sys
+from contextlib import redirect_stdout
+
 
 POS_LOW = -10
 POS_HIGH = 10
@@ -8,10 +13,13 @@ ANG_VEL_LOW = -15
 ANG_VEL_HIGH = 15
 ANG_LOW = -np.pi
 ANG_HIGH = np.pi
+
 STATE0 = r"cart position, $x\hspace{2mm}(m)$"
 STATE1 = r"cart velocity, $\dot{x}\hspace{2mm}(m/s)$"
 STATE2 = r"pole angle, $\theta\hspace{2mm}(rad)$"
 STATE3 = r"pole velocity, $\dot{\theta}\hspace{2mm}(rad/s)$"
+STATE4 = r"action force, $F\hspace{2mm}(N)$"
+STATE_LABELS = [STATE0, STATE1, STATE2, STATE3, STATE4]
 
 
 STABLE_POS = 0
@@ -27,6 +35,14 @@ UNSTABLE_ANG_VEL = 0
 DELTA = r"$\Delta$ "
 LEVELS = 20
 STEPS = 5 # In multiples of 50
+
+def get_ranges(n):
+    POS_RANGE = np.linspace(POS_LOW, POS_HIGH, n)
+    VEL_RANGE = np.linspace(VEL_LOW, VEL_HIGH, n)
+    ANG_RANGE = np.linspace(ANG_LOW, ANG_HIGH, n)
+    ANG_VEL_RANGE = np.linspace(ANG_VEL_LOW, ANG_VEL_HIGH, n)
+    return POS_RANGE, VEL_RANGE, ANG_RANGE, ANG_VEL_RANGE
+
 
 def simulate(state, steps=50, visual=False, remap_angle=False):
     cp = CartPole(visual)
@@ -213,3 +229,12 @@ def run_linear_model(X, W, steps, remap=True):
         X[2] = remap_angle(X[2])
         state = np.vstack([state, X])
     return state
+
+
+
+# Suppress print statements
+def suppress_print(func, *args, **kwargs):
+    sys.stdout = open(os.devnull, 'w')  # Redirect standard output to null device
+    res = func(*args, **kwargs)  # Call the function
+    sys.stdout = sys.__stdout__  # Restore standard output
+    return res
